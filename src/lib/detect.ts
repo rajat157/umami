@@ -168,3 +168,15 @@ export function hasBlockedIp(clientIp: string) {
 
   return false;
 }
+
+export function hasBlockedCountry(country?: string) {
+  const ignoreCountries = process.env.IGNORE_COUNTRY;
+
+  if (ignoreCountries && country) {
+    const codes = ignoreCountries.split(',').map(n => n.trim().toUpperCase());
+
+    return codes.includes(country.toUpperCase());
+  }
+
+  return false;
+}

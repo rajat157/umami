@@ -2,7 +2,7 @@ import { isbot } from 'isbot';
 import { serializeError } from 'serialize-error';
 import { z } from 'zod';
 import { secret } from '@/lib/crypto';
-import { getClientInfo, hasBlockedIp } from '@/lib/detect';
+import { getClientInfo, hasBlockedCountry, hasBlockedIp } from '@/lib/detect';
 import { parseToken } from '@/lib/jwt';
 import { fetchAccount, fetchTeam } from '@/lib/load';
 import { parseRequest } from '@/lib/request';
@@ -76,14 +76,19 @@ export async function POST(request: Request) {
       }
     }
 
-    // Client info for bot/IP checks
-    const { ip, userAgent } = await getClientInfo(request, {});
+    // Client info for bot/IP/country checks
+    const { ip, userAgent, country } = await getClientInfo(request, {});
 
     if (!process.env.DISABLE_BOT_CHECK && isbot(userAgent)) {
       return json({ beep: 'boop' });
     }
 
     if (hasBlockedIp(ip)) {
+      return forbidden();
+    }
+
+    // Country block (IGNORE_COUNTRY=BD,...)
+    if (hasBlockedCountry(country)) {
       return forbidden();
     }
 
